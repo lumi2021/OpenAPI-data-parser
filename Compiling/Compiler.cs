@@ -23,11 +23,14 @@ namespace ExtractInfoOpenApi.Compiling
 
             // compile models
             _compilationRoot.namespaces.Add(new Namespace("Models"));
+
             foreach (var i in _root.Components.Schemas)
+            {
                 GenerateModel(i);
-            
+            }
         }
 
+        public static CompRoot Emit() => _compilationRoot;
 
         private static void GenerateModel(Schema schema)
         {
@@ -36,7 +39,7 @@ namespace ExtractInfoOpenApi.Compiling
 
             foreach (var prop in schema.Properties)
             {
-                Console.WriteLine(prop.Name);
+                model.properties.Add(new(prop.Name, prop.Type));
             }
 
 

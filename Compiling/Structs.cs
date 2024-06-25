@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.Design;
+﻿using ExtractInfoOpenApi.Util.Typing;
 
 namespace ExtractInfoOpenApi.Compiling.Structs
 {
@@ -23,9 +23,17 @@ namespace ExtractInfoOpenApi.Compiling.Structs
             }
         }
 
+        public bool TryGetNamespace(string ident, out Namespace ns)
+        {
+            var namespaceRef = this[ident];
+            ns = namespaceRef;
+
+            return namespaceRef != null;
+        }
+
     }
 
-    public class Namespace (string name)
+    public class Namespace(string name)
     {
 
         public string name = name;
@@ -48,9 +56,16 @@ namespace ExtractInfoOpenApi.Compiling.Structs
             }
         }
 
+        public bool TryGetNamespace(string ident, out Namespace ns)
+        {
+            var namespaceRef = this[ident];
+            ns = namespaceRef;
+
+            return namespaceRef != null;
+        }
     }
 
-    public class ClassType (string name)
+    public class ClassType(string name)
     {
 
         public string name = name;
@@ -58,13 +73,13 @@ namespace ExtractInfoOpenApi.Compiling.Structs
 
     }
 
-    public class Property (string name, Type type)
+    public class Property(string name, IType type)
     {
 
         public bool publicModfier = false;
         public string name = name;
 
-        public Type type = type;
+        public IType type = type;
 
     }
 

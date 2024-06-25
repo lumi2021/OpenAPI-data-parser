@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using ExtractInfoOpenApi.Util.Typing;
 
 namespace ExtractInfoOpenApi.OAStructs.Schemes
 {
@@ -15,7 +16,6 @@ namespace ExtractInfoOpenApi.OAStructs.Schemes
         {
             public string Name { set; get; }
             public IType Type { set; get; }
-            public bool Nullable { get; set; }
         }
     }
     
@@ -23,23 +23,6 @@ namespace ExtractInfoOpenApi.OAStructs.Schemes
     {
 
     }
-
-
-    public interface IType {}
-
-    public struct PrimitiveType(string val) : IType
-    {
-        public readonly string value = val;
-    }
-    public struct ListType(IType type) : IType
-    {
-        public readonly IType type = type;
-    }
-    public struct ReferenceType(string _ref) : IType
-    {
-        public readonly string reference = _ref;
-    }
-
 
     public static class TypeHandler
     {
@@ -50,15 +33,18 @@ namespace ExtractInfoOpenApi.OAStructs.Schemes
             {
                 string type = prop["type"]!.Value<string>()!;
 
-                if (type == "array") return new ListType(CreateType((prop["items"] as JObject)!));
+                if (type == "array") return new ListType(CreateType((prop["items"] as JObject)!),
+                    prop["Nullable"]?.Value<bool>() ?? false);
 
-                else return new PrimitiveType(prop["format"]?.Value<string>() ?? type);
+                else return new PrimitiveType(prop["format"]?.Value<string>() ?? type,
+                    prop["Nullable"]?.Value<bool>() ?? false);
 
             }
 
             else if (prop["$ref"] != null)
             {
-                return new ReferenceType(prop["$ref"]?.Value<string>()!);
+                return new ReferenceType(prop["$ref"]?.Value<string>()!,
+                    prop["Nullable"]?.Value<bool>() ?? false);
             }
 
             return null!;

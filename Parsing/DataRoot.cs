@@ -79,16 +79,17 @@ namespace ExtractInfoOpenApi.OAStructs
 
                         if (schema.Value["properties"] != null)
                         {
-                            var property = new Schema.Property();
-
                             JObject propList = (schema.Value["properties"]! as JObject)!;
                             foreach (var p in propList)
                             {
-                                property.Name = p.Key;
+                                var property = new Schema.Property
+                                {
+                                    Name = p.Key,
 
-                                property.Nullable = p.Value?["Nullable"]?.Value<bool>() ?? false;
+                                    Type = TypeHandler.CreateType((p.Value as JObject)!)
+                                };
 
-                                property.Type = TypeHandler.CreateType((p.Value as JObject)!);
+                                newSchema.Properties.Add(property);
                             }
                         }
 

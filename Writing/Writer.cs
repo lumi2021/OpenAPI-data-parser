@@ -1,9 +1,11 @@
-﻿namespace ExtractInfoOpenApi.Writing
+﻿using ExtractInfoOpenApi.Compiling.Structs;
+
+namespace ExtractInfoOpenApi.Writing
 {
     public abstract class Writer
     {
 
-        public abstract void Write(Com stream);
+        public abstract void Write(CompRoot stream);
 
     }
 }
