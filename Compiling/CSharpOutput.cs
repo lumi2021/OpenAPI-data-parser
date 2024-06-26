@@ -1,4 +1,5 @@
 ﻿using ExtractInfoOpenApi.Compiling.Structs;
+using ExtractInfoOpenApi.Util.Typing;
 using ExtractInfoOpenApi.Writing;
 using System.Text;
 
@@ -6,6 +7,9 @@ namespace ExtractInfoOpenApi.Compiling
 {
     internal class CSharpOutput : Writer
     {
+
+        readonly StringBuilder buffer = new();
+
         public override void Write(CompRoot root)
         {
 
@@ -20,33 +24,85 @@ namespace ExtractInfoOpenApi.Compiling
             Console.ResetColor();
             Console.WriteLine("...");
 
-            StringBuilder buffer = new();
+            buffer.Clear();
 
             if (!Directory.Exists(outputPath))
                 Directory.CreateDirectory(outputPath);
 
-            if (root.TryGetNamespace("Models", out var modelsNamespace))
+            if (!Directory.Exists($"{outputPath}/Contracts/Request/"))
+                Directory.CreateDirectory($"{outputPath}/Contracts/Request/");
+            if (!Directory.Exists($"{outputPath}/Contracts/Response/"))
+                Directory.CreateDirectory($"{outputPath}/Contracts/Response/");
+
+            foreach (var i in root.contracts_Request)
+            {
+                buffer.Clear();
+
+                WriteModelInBuffer(root, i, $"{namespaceRoot}.Contracts.Request");
+
+                File.WriteAllText($"{outputPath}/Contracts/Request/{i.name}.cs", buffer.ToString());
+
+            }
+            
+            foreach (var i in root.contracts_Response)
+            {
+                buffer.Clear();
+
+                WriteModelInBuffer(root, i, $"{namespaceRoot}.Contracts.Response");
+
+                File.WriteAllText($"{outputPath}/Contracts/Response/{i.name}.cs", buffer.ToString());
+
+            }
+        }
+
+        private void WriteModelInBuffer(CompRoot root, ClassType model, string namespaceString)
+        {
+            buffer.AppendLine($"namespace {namespaceString}\n{{");
+
+            buffer.AppendLine($"\tpublic class {model.name}\n\t{{");
+
+            // Write properties
+            foreach (var prop in model.properties)
             {
 
-                if (!Directory.Exists($"{outputPath}/Models/"))
-                    Directory.CreateDirectory($"{outputPath}/Models/");
+                string type = GetAsCsharpType(prop.type, root);
+                buffer.AppendLine($"\t\tpublic {type} {prop.name} {{ get; set; }}");
 
-                foreach (var i in modelsNamespace.models)
-                {
-                    buffer.Clear();
-
-                    buffer.AppendLine($"namespace {namespaceRoot}.Models\n{{");
-
-                    buffer.AppendLine($"\tinternal class {i.name}\n\t{{");
-                    buffer.AppendLine("\t}");
-
-                    buffer.AppendLine("}");
-
-                    File.WriteAllText($"{outputPath}/Models/{i.name}.cs", buffer.ToString());
-
-                }
             }
 
+            buffer.AppendLine("\t}");
+
+            buffer.AppendLine("}");
         }
+
+        private static string GetAsCsharpType(IType typeRef, CompRoot root)
+        {
+            if (typeRef is PrimitiveType @primitive)
+                return GetPrimitiveType(primitive.value) + (primitive.Nullable ? "?" : "");
+
+            else if (typeRef is ReferenceType @ref)
+                return root.allContracts[@ref.reference[2 ..]].name + (@ref.Nullable ? "?" : "");
+
+            else if (typeRef is ListType @list)
+                return $"List<{GetAsCsharpType(list.type, root)}>" + (list.Nullable ? "?" : "");
+
+            return "void";
+        }
+
+        private static string GetPrimitiveType(string typeName)
+            => typeName switch
+            {
+                "int8" => "byte",
+                "int16" => "short",
+                "int32" => "int",
+                "int64" => "long",
+                "boolean" => "bool",
+
+                //"uuid" => typeof(Guid).Name,
+                "date-time" => typeof(DateTime).Name,
+
+                _ => typeName
+            };
+
     }
 }

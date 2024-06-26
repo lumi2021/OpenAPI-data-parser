@@ -6,63 +6,10 @@ namespace ExtractInfoOpenApi.Compiling.Structs
     public class CompRoot
     {
 
-        public List<Namespace> namespaces = [];
+        public readonly List<ClassType> contracts_Request = [];
+        public readonly List<ClassType> contracts_Response = [];
 
-        public Namespace this[string ident]
-        {
-            get
-            {
-
-                string[] idents = ident.Split('.');
-
-                var ns = namespaces.FirstOrDefault(e => e.name == idents[0]);
-
-                if (idents.Length > 1) return ns![string.Join('.', idents[1..])]!;
-                else return ns!;
-
-            }
-        }
-
-        public bool TryGetNamespace(string ident, out Namespace ns)
-        {
-            var namespaceRef = this[ident];
-            ns = namespaceRef;
-
-            return namespaceRef != null;
-        }
-
-    }
-
-    public class Namespace(string name)
-    {
-
-        public string name = name;
-
-        public List<Namespace> namespaces = [];
-        public List<ClassType> models = [];
-
-        public Namespace this[string ident]
-        {
-            get
-            {
-
-                string[] idents = ident.Split('.');
-
-                var ns = namespaces.FirstOrDefault(e => e.name == idents[0]);
-
-                if (idents.Length > 1) return ns![string.Join('.', idents[1..])]!;
-                else return ns!;
-
-            }
-        }
-
-        public bool TryGetNamespace(string ident, out Namespace ns)
-        {
-            var namespaceRef = this[ident];
-            ns = namespaceRef;
-
-            return namespaceRef != null;
-        }
+        public readonly Dictionary<string, ClassType> allContracts = [];
     }
 
     public class ClassType(string name)
