@@ -1,6 +1,7 @@
 ﻿using ExtractInfoOpenApi.Compiling.Structs;
 using ExtractInfoOpenApi.Util.Typing;
 using ExtractInfoOpenApi.Writing;
+using System.Reflection;
 using System.Text;
 
 namespace ExtractInfoOpenApi.Compiling
@@ -14,7 +15,7 @@ namespace ExtractInfoOpenApi.Compiling
         {
 
             string tempPath = "../../../";
-            string outputPath = $"{tempPath}/out/";
+            string outputPath = $"{tempPath}/out-cs/";
 
             string namespaceRoot = "Program";
 
@@ -29,6 +30,9 @@ namespace ExtractInfoOpenApi.Compiling
             if (!Directory.Exists(outputPath))
                 Directory.CreateDirectory(outputPath);
 
+            if (!Directory.Exists($"{outputPath}/Controllers/"))
+                Directory.CreateDirectory($"{outputPath}/Controllers/");
+            
             if (!Directory.Exists($"{outputPath}/Contracts/Request/"))
                 Directory.CreateDirectory($"{outputPath}/Contracts/Request/");
             if (!Directory.Exists($"{outputPath}/Contracts/Response/"))
@@ -53,6 +57,15 @@ namespace ExtractInfoOpenApi.Compiling
                 File.WriteAllText($"{outputPath}/Contracts/Response/{i.name}.cs", buffer.ToString());
 
             }
+        
+            foreach (var i in root.Controllers)
+            {
+                buffer.Clear();
+
+                WriteControllerInBuffer(root, i, $"{namespaceRoot}.Controllers");
+
+                File.WriteAllText($"{outputPath}/Controllers/{i.name}.cs", buffer.ToString());
+            }
         }
 
         private void WriteModelInBuffer(CompRoot root, ClassType model, string namespaceString)
@@ -72,6 +85,18 @@ namespace ExtractInfoOpenApi.Compiling
 
             buffer.AppendLine("\t}");
 
+            buffer.AppendLine("}");
+        }
+
+        private void WriteControllerInBuffer(CompRoot root, ClassType ctrl,  string namespaceString)
+        {
+            buffer.AppendLine($"namespace {namespaceString}\n{{");
+
+            buffer.AppendLine($"\tpublic class {ctrl.name}\n\t{{");
+
+
+
+            buffer.AppendLine("\t}");
             buffer.AppendLine("}");
         }
 

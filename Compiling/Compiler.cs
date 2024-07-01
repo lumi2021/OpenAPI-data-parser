@@ -1,6 +1,8 @@
 ﻿using ExtractInfoOpenApi.Compiling.Structs;
 using ExtractInfoOpenApi.OAStructs;
 using ExtractInfoOpenApi.OAStructs.Schemes;
+using System.Globalization;
+using System.Text;
 
 namespace ExtractInfoOpenApi.Compiling
 {
@@ -21,6 +23,8 @@ namespace ExtractInfoOpenApi.Compiling
             if (_root == null) throw new InvalidOperationException("No data feeded!");
             _compilationRoot = new();
 
+            Dictionary<string, List<(DataRoot.Path, Verbo)>> controllers = [];
+
             // compile schemas into class structures
             foreach (var i in _root.Components.Schemas)
             {
@@ -32,6 +36,13 @@ namespace ExtractInfoOpenApi.Compiling
             {
                 foreach (var verbo in i.Verbos)
                 {
+
+                    string controllerKey = TitleCase2CamelCase(RemoveDiacritics(verbo.tags[0]));
+
+                    if (!controllers.ContainsKey(controllerKey))
+                        controllers.Add(controllerKey, []);
+
+                    controllers[controllerKey].Add((i, verbo));
 
                     var responses = verbo.responses;
                     foreach (var j in responses.Content)
@@ -65,6 +76,16 @@ namespace ExtractInfoOpenApi.Compiling
 
                 }
             }
+        
+            // iterate though controllers to build the classes and methods
+            foreach (var i in controllers)
+            {
+                string controllerName = i.Key;
+
+                var controller = new ClassType(controllerName);
+
+                _compilationRoot.Controllers.Add(controller);
+            }
         }
 
         public static CompRoot Emit() => _compilationRoot;
@@ -83,5 +104,30 @@ namespace ExtractInfoOpenApi.Compiling
             _compilationRoot.allContracts.Add($"components/schemas/{model.name}", model);
         }
 
+        private static string RemoveDiacritics(string text)
+        {
+            var normalizedString = text.Normalize(NormalizationForm.FormD);
+            var stringBuilder = new StringBuilder(capacity: normalizedString.Length);
+
+            for (int i = 0; i < normalizedString.Length; i++)
+            {
+                char c = normalizedString[i];
+                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder
+                .ToString()
+                .Normalize(NormalizationForm.FormC);
+        }
+        private static string TitleCase2CamelCase(string text)
+        {
+            var splited = text.Split((char[])[' ', '_'], StringSplitOptions.RemoveEmptyEntries);
+            var processed = splited.Select(x => char.ToUpper(x[0]) + x[1..]).ToArray();
+            return string.Join(string.Empty, processed).Replace('/', '_').Replace('\\', '_');
+        }
     }
 }

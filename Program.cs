@@ -4,7 +4,7 @@ using ExtractInfoOpenApi.Writing;
 
 Console.WriteLine("Starting process...");
 
-var jsonTxt = File.ReadAllText("jsonApibigdata.json");
+var jsonTxt = File.ReadAllText("jsonApibigdata.txt");
 Console.WriteLine("Target file found.");
 
 Console.WriteLine("Starting parsing...");

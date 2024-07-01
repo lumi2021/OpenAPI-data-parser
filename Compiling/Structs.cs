@@ -5,11 +5,14 @@ namespace ExtractInfoOpenApi.Compiling.Structs
 
     public class CompRoot
     {
-
+        // Contracts
         public readonly List<ClassType> contracts_Request = [];
         public readonly List<ClassType> contracts_Response = [];
 
         public readonly Dictionary<string, ClassType> allContracts = [];
+
+        // Controllers
+        public readonly List<ClassType> Controllers = [];
     }
 
     public class ClassType(string name)
@@ -17,6 +20,7 @@ namespace ExtractInfoOpenApi.Compiling.Structs
 
         public string name = name;
         public List<Property> properties = [];
+        public List<Method> methods = [];
 
     }
 
@@ -32,7 +36,15 @@ namespace ExtractInfoOpenApi.Compiling.Structs
 
     public class Method
     {
+        public List<string> additionalAttributes = [];
+        public string name = "";
+        public List<Parameter> parametes = [];
 
     }
 
+    public struct Parameter
+    {
+        string name;
+        IType type;
+    }
 }
