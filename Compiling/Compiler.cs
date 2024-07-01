@@ -23,7 +23,7 @@ namespace ExtractInfoOpenApi.Compiling
             if (_root == null) throw new InvalidOperationException("No data feeded!");
             _compilationRoot = new();
 
-            Dictionary<string, List<(DataRoot.Path, Verbo)>> controllers = [];
+            Dictionary<string, List<(DataRoot.Path path, Verbo verbo)>> controllers = [];
 
             // compile schemas into class structures
             foreach (var i in _root.Components.Schemas)
@@ -83,6 +83,11 @@ namespace ExtractInfoOpenApi.Compiling
                 string controllerName = i.Key;
 
                 var controller = new ClassType(controllerName);
+
+                foreach (var routes in i.Value)
+                {
+                    Console.WriteLine($"{routes.verbo.nomeVerbo.ToUpper(),-8} {routes.path.url}");
+                }
 
                 _compilationRoot.Controllers.Add(controller);
             }

@@ -36,7 +36,7 @@ namespace ExtractInfoOpenApi.Compiling.Structs
 
     public class Method
     {
-        public List<string> additionalAttributes = [];
+        public Dictionary<string, string> additionalAttributes = [];
         public string name = "";
         public List<Parameter> parametes = [];
 
