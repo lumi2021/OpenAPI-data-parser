@@ -364,3 +364,4 @@ FodyWeavers.xsd
 
 # result of execution at debug mode
 out/
+out-*/

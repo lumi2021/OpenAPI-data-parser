@@ -36,15 +36,16 @@ namespace ExtractInfoOpenApi.Compiling.Structs
 
     public class Method
     {
+
         public Dictionary<string, string> additionalAttributes = [];
+        public IType returnType;
         public string name = "";
         public List<Parameter> parametes = [];
 
     }
 
-    public struct Parameter
+    public struct Parameter (string name)
     {
-        string name;
-        IType type;
+        public string name = name;
     }
 }

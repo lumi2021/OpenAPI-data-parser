@@ -5,7 +5,8 @@
         private List<HttpResponse> _responses = new();
         public HttpResponse[] Content => _responses.ToArray();
 
-        // TODO indexing operator
+        public HttpResponse this[int respCode] => this[$"{respCode}"];
+        public HttpResponse this[string respCode] => _responses.Find(e => e.response == respCode)!;
 
         public void AddResponse(HttpResponse response)
         {

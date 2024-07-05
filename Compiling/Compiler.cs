@@ -1,6 +1,7 @@
 ﻿using ExtractInfoOpenApi.Compiling.Structs;
 using ExtractInfoOpenApi.OAStructs;
 using ExtractInfoOpenApi.OAStructs.Schemes;
+using ExtractInfoOpenApi.Util.Typing;
 using System.Globalization;
 using System.Text;
 
@@ -86,7 +87,26 @@ namespace ExtractInfoOpenApi.Compiling
 
                 foreach (var routes in i.Value)
                 {
-                    Console.WriteLine($"{routes.verbo.nomeVerbo.ToUpper(),-8} {routes.path.url}");
+                    var method = new Method {
+                        name = GetRouteMethodNameFromUrl(routes.path.url)};
+
+                    var paths = routes.path.url.Split("/");
+                    foreach (var path in paths)
+                    {
+                        if (path.StartsWith('{') && path.EndsWith('}'))
+                            method.parametes.Add(new(path[1..^1]));
+                    }
+
+                    method.additionalAttributes.Add("requestMethod", routes.verbo.nomeVerbo.ToLower());
+                    method.additionalAttributes.Add("route", routes.path.url);
+
+                    var responseMethod = routes.verbo.responses[200].content;
+                    if (responseMethod.contentType == Content.ContentType.Reference)
+                    {
+                        method.returnType = new ReferenceType(responseMethod.reference, false);
+                    }
+
+                    controller.methods.Add(method);
                 }
 
                 _compilationRoot.Controllers.Add(controller);
@@ -133,6 +153,19 @@ namespace ExtractInfoOpenApi.Compiling
             var splited = text.Split((char[])[' ', '_'], StringSplitOptions.RemoveEmptyEntries);
             var processed = splited.Select(x => char.ToUpper(x[0]) + x[1..]).ToArray();
             return string.Join(string.Empty, processed).Replace('/', '_').Replace('\\', '_');
+        }
+    
+        private static string GetRouteMethodNameFromUrl(string url)
+        {
+
+            var splited = url.Split("/")[1..];
+            var rightBase = splited.Length - 1;
+
+            while (splited[rightBase].StartsWith('{')) rightBase--;
+
+            splited = splited[(Math.Max(rightBase - 3, 1))..(rightBase + 1)];
+
+            return string.Join("", splited.Select(e => char.ToUpper(e[0]) + e[1..]));
         }
     }
 }

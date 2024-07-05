@@ -1,7 +1,6 @@
 ﻿using ExtractInfoOpenApi.Compiling.Structs;
 using ExtractInfoOpenApi.Util.Typing;
 using ExtractInfoOpenApi.Writing;
-using System.Reflection;
 using System.Text;
 
 namespace ExtractInfoOpenApi.Compiling
@@ -44,7 +43,7 @@ namespace ExtractInfoOpenApi.Compiling
 
                 WriteModelInBuffer(root, i, $"{namespaceRoot}.Contracts.Request");
 
-                File.WriteAllText($"{outputPath}/Contracts/Request/{i.name}.cs", buffer.ToString());
+                File.WriteAllText($"{outputPath}/Contracts/Request/{i.name}.cs", buffer.ToString().Replace("\t", "    "));
 
             }
             
@@ -54,7 +53,7 @@ namespace ExtractInfoOpenApi.Compiling
 
                 WriteModelInBuffer(root, i, $"{namespaceRoot}.Contracts.Response");
 
-                File.WriteAllText($"{outputPath}/Contracts/Response/{i.name}.cs", buffer.ToString());
+                File.WriteAllText($"{outputPath}/Contracts/Response/{i.name}.cs", buffer.ToString().Replace("\t", "    "));
 
             }
         
@@ -64,8 +63,9 @@ namespace ExtractInfoOpenApi.Compiling
 
                 WriteControllerInBuffer(root, i, $"{namespaceRoot}.Controllers");
 
-                File.WriteAllText($"{outputPath}/Controllers/{i.name}.cs", buffer.ToString());
+                File.WriteAllText($"{outputPath}/Controllers/{i.name}.cs", buffer.ToString().Replace("\t", "    "));
             }
+
         }
 
         private void WriteModelInBuffer(CompRoot root, ClassType model, string namespaceString)
@@ -94,7 +94,30 @@ namespace ExtractInfoOpenApi.Compiling
 
             buffer.AppendLine($"\tpublic class {ctrl.name}\n\t{{");
 
+            buffer.AppendLine();
 
+            foreach (var i in ctrl.methods)
+            {
+                var method = i.additionalAttributes["requestMethod"];
+                var route = i.additionalAttributes["route"];
+
+                buffer.AppendLine($"\t\t[Http{char.ToUpper(method[0]) + method[1..]}]");
+                buffer.AppendLine($"\t\t[Route(\"{route}\")]");
+                buffer.Append($"\t\tpublic ");
+
+                buffer.Append(GetAsCsharpType(i.returnType, root));
+
+                buffer.Append($" {i.name}(");
+
+                buffer.Append(string.Join(", ", i.parametes.Select(e => $"string {e.name}")));
+
+                buffer.AppendLine(")\n\t\t{");
+                buffer.AppendLine("\t\t\tthrow new NotImplementedException();");
+                buffer.AppendLine("\t\t}");
+
+                buffer.AppendLine();
+
+            }
 
             buffer.AppendLine("\t}");
             buffer.AppendLine("}");
