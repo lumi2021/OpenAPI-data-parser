@@ -38,14 +38,15 @@ namespace ExtractInfoOpenApi.Compiling.Structs
     {
 
         public Dictionary<string, string> additionalAttributes = [];
-        public IType returnType;
+        public IType returnType = null!;
         public string name = "";
         public List<Parameter> parametes = [];
 
     }
 
-    public struct Parameter (string name)
+    public struct Parameter (string name, IType type)
     {
         public string name = name;
+        public IType type = type;
     }
 }

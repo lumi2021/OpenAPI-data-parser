@@ -9,7 +9,7 @@ C# with this ammount of data.
 
 Still being pretty raw, it's a well structured base.
 
-The program can easilly turn in C# easy plugable classes schemes and controlelrs.
+The program can easilly turn in C# easy plugable classes schemes and services.
 In the future, is planned to be added some writers for javascript too, also an
 easy plug-in system do add custom writers.
 

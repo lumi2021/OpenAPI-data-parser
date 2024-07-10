@@ -16,8 +16,8 @@
 
     public class HttpResponse
     {
-        public string response { get; set; }
-        public string description { get; set; }
-        public Content content { get; set; }
+        public string response { get; set; } = null!;
+        public string description { get; set; } = null!;
+        public Content content { get; set; } = null!;
     }
 }

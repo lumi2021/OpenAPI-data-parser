@@ -18,12 +18,7 @@ namespace ExtractInfoOpenApi.OAStructs
 
                 DataRoot root = new();
 
-                // A raiz de jsonObj é constante.
-                // para aceleraro processo nesseponto, o acesso
-                // aos campos podem ser hardcoded
-
-                // Descerializando paths
-
+                // Desserializing paths
                 JObject paths = jsonObj["paths"]!.Value<JObject>()!;
                 int pathsParsed = 0;
 
@@ -39,7 +34,7 @@ namespace ExtractInfoOpenApi.OAStructs
                     {
                         // Aqui, cada item é um verbo.
 
-                        Verbo verbo = Verbo.CreateVerbo(item.Key, item.Value as JObject);
+                        Verbo verbo = Verbo.CreateVerbo(item.Key, (item.Value as JObject)!);
                         pathObj.AddVerbo(verbo);
                     }
 
@@ -54,8 +49,7 @@ namespace ExtractInfoOpenApi.OAStructs
                 Console.WriteLine("Parsing paths Finished.");
                 Console.ResetColor();
 
-                // Descerializando components
-
+                // Desserializing components
                 root.Components = new();
 
                 JObject components = jsonObj["components"]!.Value<JObject>()!;

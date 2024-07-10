@@ -24,7 +24,7 @@ namespace ExtractInfoOpenApi.Compiling
             if (_root == null) throw new InvalidOperationException("No data feeded!");
             _compilationRoot = new();
 
-            Dictionary<string, List<(DataRoot.Path path, Verbo verbo)>> controllers = [];
+            Dictionary<string, List<(DataRoot.Path path, Verbo verbo)>> services = [];
 
             // compile schemas into class structures
             foreach (var i in _root.Components.Schemas)
@@ -40,10 +40,10 @@ namespace ExtractInfoOpenApi.Compiling
 
                     string controllerKey = TitleCase2CamelCase(RemoveDiacritics(verbo.tags[0]));
 
-                    if (!controllers.ContainsKey(controllerKey))
-                        controllers.Add(controllerKey, []);
+                    if (!services.ContainsKey(controllerKey))
+                        services.Add(controllerKey, []);
 
-                    controllers[controllerKey].Add((i, verbo));
+                    services[controllerKey].Add((i, verbo));
 
                     var responses = verbo.responses;
                     foreach (var j in responses.Content)
@@ -78,8 +78,8 @@ namespace ExtractInfoOpenApi.Compiling
                 }
             }
         
-            // iterate though controllers to build the classes and methods
-            foreach (var i in controllers)
+            // iterate though services to build the classes and methods
+            foreach (var i in services)
             {
                 string controllerName = i.Key;
 
@@ -94,7 +94,13 @@ namespace ExtractInfoOpenApi.Compiling
                     foreach (var path in paths)
                     {
                         if (path.StartsWith('{') && path.EndsWith('}'))
-                            method.parametes.Add(new(path[1..^1]));
+                        {
+                            var pName = path[1..^1];
+                            var p = routes.verbo.parameters.FirstOrDefault(e => e.Name == pName)
+                            ?? routes.verbo.parameters.First(e => e.Name.Equals(pName, StringComparison.CurrentCultureIgnoreCase));
+
+                            method.parametes.Add(new(p.Name, p.Type));
+                        }
                     }
 
                     method.additionalAttributes.Add("requestMethod", routes.verbo.nomeVerbo.ToLower());
@@ -152,7 +158,10 @@ namespace ExtractInfoOpenApi.Compiling
         {
             var splited = text.Split((char[])[' ', '_'], StringSplitOptions.RemoveEmptyEntries);
             var processed = splited.Select(x => char.ToUpper(x[0]) + x[1..]).ToArray();
-            return string.Join(string.Empty, processed).Replace('/', '_').Replace('\\', '_');
+            return string.Join(string.Empty, processed)
+            .Replace('-', '_')
+            .Replace('/', '_')
+            .Replace('\\', '_');
         }
     
         private static string GetRouteMethodNameFromUrl(string url)

@@ -5,16 +5,14 @@ namespace ExtractInfoOpenApi.OAStructs
     public class Verbo
     {
 
-        private Verbo() {}
+        public string nomeVerbo = null!;
 
-        public string nomeVerbo;
+        public string[] tags = [];
+        public string operationId = null!;
+        public Content requestBody = null!;
+        public Responses responses = null!;
 
-        public string[] tags;
-        public string operationId;
-        public Content requestBody;
-        public Responses responses;
-
-        public Parameter[] parameters;
+        public Parameter[] parameters = [];
 
 
         public static Verbo CreateVerbo(string verboName, JObject verboFields)
@@ -57,23 +55,15 @@ namespace ExtractInfoOpenApi.OAStructs
     
         private static Parameter[] ProcessVerboParameters(JArray? parametersData)
         {
-            if (parametersData == null) return Array.Empty<Parameter>();
+            if (parametersData == null) return [];
 
-            List<Parameter> parameters = new();
+            List<Parameter> parameters = [];
 
             foreach (var i in parametersData)
-            {
-                Parameter parameter = new()
-                {
-                    Name = i["name"]?.Value<string>() ?? "",
-                    In = i["in"]?.Value<string>() ?? "",
-                    Required = i["required"]?.Value<bool>() ?? false,
-                    //Content = new(i["schema"]!)
-                };
-                parameters.Add(parameter);
-            }
+                parameters.Add(new(i));
 
-            return Array.Empty<Parameter>();
+            return [.. parameters];
         }
     }
 }
+

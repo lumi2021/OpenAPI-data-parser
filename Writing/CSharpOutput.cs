@@ -26,11 +26,13 @@ namespace ExtractInfoOpenApi.Compiling
 
             buffer.Clear();
 
-            if (!Directory.Exists(outputPath))
-                Directory.CreateDirectory(outputPath);
+            if (Directory.Exists(outputPath))
+                Directory.Delete(outputPath, true);
 
-            if (!Directory.Exists($"{outputPath}/Controllers/"))
-                Directory.CreateDirectory($"{outputPath}/Controllers/");
+            Directory.CreateDirectory(outputPath);
+
+            if (!Directory.Exists($"{outputPath}/Services/"))
+                Directory.CreateDirectory($"{outputPath}/Services/");
             
             if (!Directory.Exists($"{outputPath}/Contracts/Request/"))
                 Directory.CreateDirectory($"{outputPath}/Contracts/Request/");
@@ -61,9 +63,9 @@ namespace ExtractInfoOpenApi.Compiling
             {
                 buffer.Clear();
 
-                WriteControllerInBuffer(root, i, $"{namespaceRoot}.Controllers");
+                WriteServiceInBuffer(root, i, $"{namespaceRoot}.Services");
 
-                File.WriteAllText($"{outputPath}/Controllers/{i.name}.cs", buffer.ToString().Replace("\t", "    "));
+                File.WriteAllText($"{outputPath}/Services/{i.name}.cs", buffer.ToString().Replace("\t", "    "));
             }
 
         }
@@ -88,11 +90,11 @@ namespace ExtractInfoOpenApi.Compiling
             buffer.AppendLine("}");
         }
 
-        private void WriteControllerInBuffer(CompRoot root, ClassType ctrl,  string namespaceString)
+        private void WriteServiceInBuffer(CompRoot root, ClassType ctrl,  string namespaceString)
         {
             buffer.AppendLine($"namespace {namespaceString}\n{{");
 
-            buffer.AppendLine($"\tpublic class {ctrl.name}\n\t{{");
+            buffer.AppendLine($"\tpublic class {ctrl.name}Service\n\t{{");
 
             buffer.AppendLine();
 
@@ -101,17 +103,21 @@ namespace ExtractInfoOpenApi.Compiling
                 var method = i.additionalAttributes["requestMethod"];
                 var route = i.additionalAttributes["route"];
 
-                buffer.AppendLine($"\t\t[Http{char.ToUpper(method[0]) + method[1..]}]");
-                buffer.AppendLine($"\t\t[Route(\"{route}\")]");
                 buffer.Append($"\t\tpublic ");
 
                 buffer.Append(GetAsCsharpType(i.returnType, root));
 
                 buffer.Append($" {i.name}(");
 
-                buffer.Append(string.Join(", ", i.parametes.Select(e => $"string {e.name}")));
+                buffer.Append(string.Join(", ", i.parametes.Select(e => $"{GetAsCsharpType(e.type, root)} {e.name}")));
 
                 buffer.AppendLine(")\n\t\t{");
+
+                buffer.AppendLine("\t\t\t/*");
+                buffer.AppendLine($"\t\t\t* method: {method.ToUpper()}");
+                buffer.AppendLine($"\t\t\t* url: {route}");
+                buffer.AppendLine("\t\t\t*/");
+
                 buffer.AppendLine("\t\t\tthrow new NotImplementedException();");
                 buffer.AppendLine("\t\t}");
 
