@@ -118,7 +118,56 @@ namespace ExtractInfoOpenApi.Compiling
                 buffer.AppendLine($"\t\t\t* url: {route}");
                 buffer.AppendLine("\t\t\t*/");
 
-                buffer.AppendLine("\t\t\tthrow new NotImplementedException();");
+                buffer.Append("\t\t\tstring url = $\"");
+
+                var paths = route.Split("/")[1..];
+
+                foreach (var p in paths)
+                {
+                    if (p.StartsWith('{') && p.EndsWith('}'))
+                    {
+                        string paramName = p[1..^1];
+                        var param = i.parametes.Where(e => e.kind == Parameter.ParameterKind.Path)
+                            .FirstOrDefault(e => e.name == paramName);
+
+                        if (param != null)
+                            buffer.Append($"/{{{param.name}}}");
+
+                        else buffer.Append("/undefined");
+
+                    }
+                    else
+                    {
+                        buffer.Append($"/{p}");
+                    }
+                }
+
+                if (i.parametes.Any(e => e.kind == Parameter.ParameterKind.Query))
+                    buffer.Append('?');
+                buffer.AppendLine("\";");
+
+                foreach (var q in i.parametes.Where(e => e.kind == Parameter.ParameterKind.Query))
+                {
+                    if (q.type.Nullable && q.type is PrimitiveType @p)
+                    {
+                        if (p.value == "string")
+                        {
+                            buffer.Append($"\t\t\tif ({q.name} != null) ");
+                            buffer.AppendLine($"url += $\"{q.name}={{{q.name}}}&\";");
+                        }
+                    }
+
+                    else if (q.type.Nullable)
+                    {
+                        buffer.Append($"\t\t\tif ({q.name}.HasValue) ");
+                        buffer.AppendLine($"url += $\"{q.name}={{{q.name}.Value}}&\";");
+                    }
+
+                    else buffer.AppendLine($"\t\t\turl += $\"{q.name}={{{q.name}}}&\";");
+
+                }
+
+                buffer.AppendLine("\n\t\t\tthrow new NotImplementedException();");
                 buffer.AppendLine("\t\t}");
 
                 buffer.AppendLine();

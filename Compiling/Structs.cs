@@ -1,4 +1,5 @@
 ﻿using ExtractInfoOpenApi.Util.Typing;
+using static ExtractInfoOpenApi.Compiling.Structs.Parameter;
 
 namespace ExtractInfoOpenApi.Compiling.Structs
 {
@@ -44,9 +45,25 @@ namespace ExtractInfoOpenApi.Compiling.Structs
 
     }
 
-    public struct Parameter (string name, IType type)
+    public class Parameter (string name, IType type, string kind)
     {
         public string name = name;
         public IType type = type;
+
+        public ParameterKind kind = kind.ToLower() switch
+        {
+            "path" => ParameterKind.Path,
+            "query" => ParameterKind.Query,
+            "header" => ParameterKind.Header,
+
+            _ => ParameterKind.Path
+        };
+
+        public enum ParameterKind
+        {
+            Query,
+            Path,
+            Header
+        }
     }
 }

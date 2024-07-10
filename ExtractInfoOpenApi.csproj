@@ -8,16 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="bin\**" />
     <Compile Remove="out-cs\**" />
     <Compile Remove="out\**" />
+    <EmbeddedResource Remove="bin\**" />
     <EmbeddedResource Remove="out-cs\**" />
     <EmbeddedResource Remove="out\**" />
+    <None Remove="bin\**" />
     <None Remove="out-cs\**" />
     <None Remove="out\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="bin\Debug\net8.0\jsonApibigdata.txt" />
   </ItemGroup>
 
   <ItemGroup>

@@ -90,18 +90,9 @@ namespace ExtractInfoOpenApi.Compiling
                     var method = new Method {
                         name = GetRouteMethodNameFromUrl(routes.path.url)};
 
-                    var paths = routes.path.url.Split("/");
-                    foreach (var path in paths)
-                    {
-                        if (path.StartsWith('{') && path.EndsWith('}'))
-                        {
-                            var pName = path[1..^1];
-                            var p = routes.verbo.parameters.FirstOrDefault(e => e.Name == pName)
-                            ?? routes.verbo.parameters.First(e => e.Name.Equals(pName, StringComparison.CurrentCultureIgnoreCase));
-
-                            method.parametes.Add(new(p.Name, p.Type));
-                        }
-                    }
+                    
+                    foreach (var p in routes.verbo.parameters)
+                        method.parametes.Add(new(p.Name, p.Type, p.ParamKind));
 
                     method.additionalAttributes.Add("requestMethod", routes.verbo.nomeVerbo.ToLower());
                     method.additionalAttributes.Add("route", routes.path.url);
