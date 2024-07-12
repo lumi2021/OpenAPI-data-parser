@@ -5,7 +5,7 @@ namespace ExtractInfoOpenApi.Writing
     public abstract class Writer
     {
 
-        public abstract void Write(CompRoot stream);
+        public abstract void Write(CompRoot stream, string namespaceBase);
 
     }
 }

@@ -42,13 +42,6 @@ namespace ExtractInfoOpenApi.OAStructs
                     pathsParsed++;
                 }
 
-                Console.SetCursorPosition(left, top);
-                Console.Write(new String(' ', Console.WindowWidth * 5));
-                Console.SetCursorPosition(left, top);
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Parsing paths Finished.");
-                Console.ResetColor();
-
                 // Desserializing components
                 root.Components = new();
 

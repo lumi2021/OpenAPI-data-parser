@@ -4,11 +4,13 @@ using ExtractInfoOpenApi.Writing;
 
 Console.WriteLine("OpenAPI data parser ver. 1.0.0");
 
-Console.WriteLine("Please give the path and name of the desired JSON file:");
+Console.WriteLine("\nPlease give the path and name of the desired JSON file:");
 
 (int Left, int Top) = Console.GetCursorPosition();
 (int Left, int Top) ccbottom = (Left, Top + 1);
+
 string path = Path.GetFullPath("./");
+string namespaceBase = "Program";
 
 while (true)
 {
@@ -89,18 +91,52 @@ while (true)
 }
 
 var jsonTxt = File.ReadAllText("jsonApibigdata.txt");
-Console.WriteLine("Target file found.");
+Console.WriteLine("Target file found.\n");
 
+(Left, Top) = Console.GetCursorPosition();
 Console.WriteLine("Starting parsing...");
 DataRoot obj = DataRoot.CreateFromJson(jsonTxt);
 
+Console.SetCursorPosition(Left, Top);
+ClearLine();
+Console.ForegroundColor = ConsoleColor.Green;
+Console.WriteLine("Parsing complete!");
+Console.ResetColor();
+
+(Left, Top) = Console.GetCursorPosition();
 Console.WriteLine("Starting compiling...");
 Compiler.FeedSource(obj);
 Compiler.Compile();
 
+Console.SetCursorPosition(Left, Top);
+ClearLine();
+Console.ForegroundColor = ConsoleColor.Green;
+Console.WriteLine("Compiling complete!");
+Console.ResetColor();
+
+Console.Write($"\nPlease give the base namespace name: (Default is {namespaceBase})\n> ");
+namespaceBase = Console.ReadLine() ?? namespaceBase;
+Console.WriteLine();
+
+(Left, Top) = Console.GetCursorPosition();
 Console.WriteLine("Starting writing...");
 Writer writer = new CSharpOutput();
-writer.Write(Compiler.Emit());
+writer.Write(Compiler.Emit(), namespaceBase);
+
+Console.SetCursorPosition(Left, Top);
+ClearLine();
+Console.ForegroundColor = ConsoleColor.Green;
+Console.WriteLine("Writing complete!");
+Console.ResetColor();
 
 Console.WriteLine("\nProcess finished.\nPress any key to close the window.");
 Console.ReadKey(true);
+
+
+static void ClearLine()
+{
+    (int left, int top) = Console.GetCursorPosition();
+    Console.SetCursorPosition(left, top);
+    Console.Write(new String(' ', Console.WindowWidth * 5));
+    Console.SetCursorPosition(left, top);
+}

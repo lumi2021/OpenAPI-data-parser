@@ -9,14 +9,13 @@ namespace ExtractInfoOpenApi.Compiling
     {
 
         readonly StringBuilder buffer = new();
+        readonly Queue<(string key, string value)> url_constants = [];
 
-        public override void Write(CompRoot root)
+        public override void Write(CompRoot root, string namespaceRoot)
         {
 
             string tempPath = "../../../";
             string outputPath = $"{tempPath}/out-cs/";
-
-            string namespaceRoot = "Program";
 
             Console.Write("Saving in ");
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -68,6 +67,10 @@ namespace ExtractInfoOpenApi.Compiling
                 File.WriteAllText($"{outputPath}/Services/{i.name}.cs", buffer.ToString().Replace("\t", "    "));
             }
 
+            buffer.Clear();
+            WriteConstantsInBuffer(root, $"{namespaceRoot}.Services");
+            File.WriteAllText($"{outputPath}/Services/Constants.cs", buffer.ToString().Replace("\t", "    "));
+
         }
 
         private void WriteModelInBuffer(CompRoot root, ClassType model, string namespaceString)
@@ -90,7 +93,7 @@ namespace ExtractInfoOpenApi.Compiling
             buffer.AppendLine("}");
         }
 
-        private void WriteServiceInBuffer(CompRoot root, ClassType ctrl,  string namespaceString)
+        private void WriteServiceInBuffer(CompRoot root, ClassType ctrl, string namespaceString)
         {
             buffer.AppendLine($"namespace {namespaceString}\n{{");
 
@@ -107,9 +110,10 @@ namespace ExtractInfoOpenApi.Compiling
 
                 buffer.Append(GetAsCsharpType(i.returnType, root));
 
-                buffer.Append($" {i.name}(");
+                buffer.Append($" {i.name}{method.ToUpper()}(");
 
-                buffer.Append(string.Join(", ", i.parametes.Select(e => $"{GetAsCsharpType(e.type, root)} {e.name}")));
+                buffer.Append(string.Join(", ",
+                    i.parametes.Select(e => $"{GetAsCsharpType(e.type, root)} {e.name}")));
 
                 buffer.AppendLine(")\n\t\t{");
 
@@ -118,9 +122,10 @@ namespace ExtractInfoOpenApi.Compiling
                 buffer.AppendLine($"\t\t\t* url: {route}");
                 buffer.AppendLine("\t\t\t*/");
 
-                buffer.Append("\t\t\tstring url = $\"");
-
                 var paths = route.Split("/")[1..];
+
+                StringBuilder path = new();
+                List<string> args = [];
 
                 foreach (var p in paths)
                 {
@@ -131,20 +136,21 @@ namespace ExtractInfoOpenApi.Compiling
                             .FirstOrDefault(e => e.name == paramName);
 
                         if (param != null)
-                            buffer.Append($"/{{{param.name}}}");
+                        {
+                            args.Add(param.name);
+                            path.Append($"/{{{args.Count-1}}}");
+                        }
 
-                        else buffer.Append("/undefined");
+                        else path.Append("/undefined");
 
                     }
-                    else
-                    {
-                        buffer.Append($"/{p}");
-                    }
+                    else path.Append($"/{p}");
                 }
 
-                if (i.parametes.Any(e => e.kind == Parameter.ParameterKind.Query))
-                    buffer.Append('?');
-                buffer.AppendLine("\";");
+                var constantName = $"url_{ctrl.name}{i.name}{method.ToUpper()}";
+                url_constants.Enqueue((constantName, path.ToString()));
+
+                buffer.Append($"\t\t\tUriBuilder url = new(Constants.{constantName});");
 
                 foreach (var q in i.parametes.Where(e => e.kind == Parameter.ParameterKind.Query))
                 {
@@ -173,6 +179,19 @@ namespace ExtractInfoOpenApi.Compiling
                 buffer.AppendLine();
 
             }
+
+            buffer.AppendLine("\t}");
+            buffer.AppendLine("}");
+        }
+
+        private void WriteConstantsInBuffer(CompRoot root, string namespaceString)
+        {
+            buffer.AppendLine($"namespace {namespaceString}\n{{");
+
+            buffer.AppendLine($"\tpublic static class Constants\n\t{{");
+
+            foreach(var i in url_constants)
+                buffer.AppendLine($"\t\tpublic static readonly {i.key} = \"{i.value}\";");
 
             buffer.AppendLine("\t}");
             buffer.AppendLine("}");
